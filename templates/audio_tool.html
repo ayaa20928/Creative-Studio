@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% set title = "Audio Tool • Creative Studio" %}
+
+{% block content %}
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Module 3B — Audio Processing Tool</h1>
+      <p class="text-secondary mb-0">
+        Upload audio and apply effects (speed / pitch / echo / reverb), or generate ambient sound.
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-primary" href="/gallery">View Gallery</a>
+      <a class="btn btn-outline-secondary" href="/">Home</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT: Controls -->
+    <div class="col-12 col-lg-5">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Upload & Effects</h2>
+
+          <form method="POST" enctype="multipart/form-data" class="d-grid gap-3">
+
+            <div>
+              <label class="form-label fw-semibold">Audio file</label>
+              <input type="file" name="audio" class="form-control" accept=".wav,.mp3,.ogg,.flac,.m4a">
+              <div class="form-text">
+                Required for speed / pitch / echo / reverb.
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold">Action</label>
+              <select name="action" id="action" class="form-select">
+                <option value="speed">Speed</option>
+                <option value="pitch">Pitch</option>
+                <option value="echo">Echo</option>
+                <option value="reverb">Reverb</option>
+              </select>
+            </div>
+
+            <div id="speedBox">
+              <label class="form-label fw-semibold">Speed</label>
+              <input type="number" step="0.1" name="speed" value="1" class="form-control">
+              <div class="form-text">Example: 0.8 slower • 1.0 normal • 1.3 faster</div>
+            </div>
+
+            <div id="pitchBox" class="d-none">
+              <label class="form-label fw-semibold">Pitch (semitones)</label>
+              <input type="number" step="0.5" name="semitones" value="0" class="form-control">
+              <div class="form-text">Example: +3 higher • -3 lower</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              Apply Effect
+            </button>
+          </form>
+
+          <hr class="my-4">
+
+          <h3 class="h6 mb-2">Generate Ambient (no upload)</h3>
+          <form method="POST" class="d-grid">
+            <input type="hidden" name="action" value="ambient">
+            <button type="submit" class="btn btn-outline-primary">
+              Generate Ambient Sound
+            </button>
+          </form>
+
+          <div class="small text-secondary mt-2">
+            Output is saved as WAV and can be downloaded.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Result -->
+    <div class="col-12 col-lg-7">
+      <div class="card card-soft h-100">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Result</h2>
+
+          {% if output_url %}
+            <audio controls class="w-100 mb-3">
+              <source src="{{ output_url }}" type="audio/wav">
+              Your browser does not support the audio element.
+            </audio>
+
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-success" href="{{ output_url }}" download>Download WAV</a>
+              <a class="btn btn-outline-secondary" href="{{ output_url }}" target="_blank">Open</a>
+            </div>
+
+            <div class="alert alert-light border mt-3 mb-0">
+              Tip: If playback fails, try generating ambient sound to confirm audio output works,
+              then test uploads again.
+            </div>
+          {% else %}
+            <div class="alert alert-light border mb-0">
+              No audio yet. Choose an action, upload a file (or generate ambient), then apply.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const action = document.getElementById("action");
+  const speedBox = document.getElementById("speedBox");
+  const pitchBox = document.getElementById("pitchBox");
+
+  function refresh() {
+    const v = action.value;
+    // Speed params only for speed
+    speedBox.classList.toggle("d-none", v !== "speed");
+    // Pitch params only for pitch
+    pitchBox.classList.toggle("d-none", v !== "pitch");
+  }
+
+  action.addEventListener("change", refresh);
+  refresh();
+</script>
+{% endblock %}
+

@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+{% set title = "Data Multi • Creative Studio" %}
+
+{% block head %}
+<style>
+.tool-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.tool-left {
+  flex: 0 0 320px;
+  min-width: 280px;
+}
+
+.tool-right {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 991px) {
+  .tool-container {
+    flex-direction: column;
+  }
+  
+  .tool-left {
+    flex: none;
+    width: 100%;
+  }
+  
+  .tool-right {
+    width: 100%;
+  }
+}
+
+.viz-canvas {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(196,78,255,0.2);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Module 2 — Animated Data Art (2 Visualizations)</h1>
+      <p class="text-secondary mb-0">
+        Top: multi-style animated visualization. Bottom: animated mandala. Both use the same dataset.
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-primary" href="/data-art">Static Page</a>
+      <a class="btn btn-outline-secondary" href="/">Home</a>
+    </div>
+  </div>
+
+  <div class="tool-container">
+
+    <!-- LEFT: Controls -->
+    <div class="tool-left">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Controls</h2>
+
+          <div class="d-grid gap-3">
+
+            <div>
+              <label class="form-label fw-semibold">Style</label>
+              <select id="style" class="form-select">
+                <option value="wave">Wave Landscape</option>
+                <option value="bars">Floating Bars</option>
+                <option value="radial">Radial Bloom</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold">Speed</label>
+              <input id="speed" type="range" min="1" max="100" value="35" class="form-range">
+              <div class="form-text">Higher speed = faster animation.</div>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold">Smooth</label>
+              <input id="smooth" type="range" min="0" max="100" value="60" class="form-range">
+              <div class="form-text">Smoothing reduces sharp changes in the dataset curve.</div>
+            </div>
+
+            <button id="pauseBtn" class="btn btn-outline-primary" type="button">Pause</button>
+
+            <div class="alert alert-light border mb-0 small">
+              If you see an error, open the browser console (F12) and also check
+              <code>/api/sales-series</code>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Canvases -->
+    <div class="tool-right">
+      <div class="card card-soft mb-4">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Visualization 1 — Multi Style</h2>
+          <canvas id="c" width="960" height="460" class="viz-canvas"></canvas>
+        </div>
+      </div>
+
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Visualization 2 — Animated Mandala</h2>
+          <p class="text-secondary mb-3">
+            Rotating + pulsing mandala driven by monthly retail + warehouse sales.
+          </p>
+          <canvas id="mandalaCanvas" width="960" height="520" class="viz-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- ===========================
+     SCRIPT 1: MULTI VIS CANVAS
+     =========================== -->
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+const styleSel = document.getElementById("style");
+const speedEl = document.getElementById("speed");
+const smoothEl = document.getElementById("smooth");
+const pauseBtn = document.getElementById("pauseBtn");
+
+let series = [];
+let t = 0;
+let running = true;
+
+// particles
+const particles = Array.from({length: 120}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: 0.8 + Math.random() * 1.8,
+  vx: -0.25 + Math.random() * 0.5,
+  vy: -0.2 + Math.random() * 0.4
+}));
+
+function lerp(a,b,u){ return a + (b-a)*u; }
+function valueColor(u){
+  const r = Math.floor(lerp(40, 255, Math.min(1, u*1.1)));
+  const g = Math.floor(lerp(90, 60, u));
+  const b = Math.floor(lerp(220, 40, u));
+  return `rgb(${r},${g},${b})`;
+}
+
+function bg(){
+  const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+  grad.addColorStop(0, "#070f1f");
+  grad.addColorStop(1, "#12062a");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function drawParticles(){
+  ctx.globalAlpha = 0.35;
+  for(const p of particles){
+    p.x += p.vx; p.y += p.vy;
+    if(p.x < -10) p.x = canvas.width + 10;
+    if(p.x > canvas.width + 10) p.x = -10;
+    if(p.y < -10) p.y = canvas.height + 10;
+    if(p.y > canvas.height + 10) p.y = -10;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function smoothSeries(arr, amount01){
+  if(amount01 <= 0) return arr.slice();
+  const out = arr.slice();
+  const passes = Math.floor(lerp(0, 6, amount01));
+  for(let p=0; p<passes; p++){
+    for(let i=1; i<out.length-1; i++){
+      out[i] = (out[i-1] + out[i] + out[i+1]) / 3;
+    }
+  }
+  return out;
+}
+
+function drawWave(arr){
+  const W = canvas.width, H = canvas.height;
+  const baseY = H * 0.64;
+  const amp = H * 0.26;
+  const avg = arr.reduce((a,b)=>a+b,0)/arr.length;
+
+  for(let layer=0; layer<4; layer++){
+    const shift = layer * 0.23;
+    ctx.beginPath();
+    for(let i=0; i<arr.length; i++){
+      const u = arr[i];
+      const x = (i/(arr.length-1)) * W;
+      const wobble = Math.sin(t*2 + i*0.35 + shift) * 0.08;
+      const y = baseY - (u + wobble)*amp + layer*18;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+
+    ctx.strokeStyle = valueColor(Math.min(1, avg + layer*0.08));
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = valueColor(Math.min(1, avg + layer*0.08));
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.fillStyle = "rgba(255,255,255,0.86)";
+  ctx.font = "16px Arial";
+  ctx.fillText("Wave Landscape", 16, 26);
+}
+
+function drawBars(arr){
+  const W = canvas.width, H = canvas.height;
+  const n = arr.length;
+  const barW = W / n;
+  const floatY = (Math.sin(t*1.3) * 0.02 + 0.03) * H;
+
+  ctx.globalAlpha = 0.08;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, H*0.72, W, H);
+  ctx.globalAlpha = 1;
+
+  for(let i=0; i<n; i++){
+    const u = arr[i];
+    const h = u * (H*0.62);
+    const x = i * barW;
+    const y = H - h - floatY - (Math.sin(t*2 + i*0.3)*8);
+
+    ctx.fillStyle = valueColor(u);
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(x+2, y, Math.max(1, barW-4), h);
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = "rgba(255,255,255,0.86)";
+  ctx.font = "16px Arial";
+  ctx.fillText("Floating Bars", 16, 26);
+}
+
+function drawRadial(arr){
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2 + 20;
+  const baseR = Math.min(W,H) * 0.12;
+  const maxR = Math.min(W,H) * 0.40;
+  const rot = t * 0.9;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+
+  const n = arr.length;
+  for(let i=0; i<n; i++){
+    const u = arr[i];
+    const ang = (i/n) * Math.PI * 2;
+    const r = baseR + u * (maxR - baseR);
+    const wob = Math.sin(t*2 + i*0.22) * 6;
+
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0, r + wob, ang, ang + (Math.PI*2)/n, false);
+    ctx.closePath();
+
+    ctx.fillStyle = valueColor(u);
+    ctx.globalAlpha = 0.55;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.beginPath();
+  ctx.arc(0,0, 6, 0, Math.PI*2);
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.fill();
+
+  ctx.restore();
+
+  ctx.fillStyle = "rgba(255,255,255,0.86)";
+  ctx.font = "16px Arial";
+  ctx.fillText("Radial Bloom", 16, 26);
+}
+
+function loop(){
+  if(!running) return;
+
+  const speed = Number(speedEl.value) / 100;
+  const smooth = Number(smoothEl.value) / 100;
+  t += 0.01 + speed * 0.03;
+
+  bg();
+  drawParticles();
+
+  const arr = smoothSeries(series, smooth);
+
+  const mode = styleSel.value;
+  if(mode === "wave") drawWave(arr);
+  else if(mode === "bars") drawBars(arr);
+  else drawRadial(arr);
+
+  requestAnimationFrame(loop);
+}
+
+pauseBtn.addEventListener("click", () => {
+  running = !running;
+  pauseBtn.textContent = running ? "Pause" : "Resume";
+  if(running) loop();
+});
+</script>
+
+<!-- ===========================
+     SCRIPT 2: ANIMATED MANDALA
+     =========================== -->
+<script>
+const mCanvas = document.getElementById("mandalaCanvas");
+const mCtx = mCanvas.getContext("2d");
+
+let mSeries = [];
+let mt = 0;
+
+function mLerp(a,b,u){ return a + (b-a)*u; }
+function mColor(u){
+  const r = Math.floor(mLerp(40, 255, Math.min(1, u*1.1)));
+  const g = Math.floor(mLerp(90, 60, u));
+  const b = Math.floor(mLerp(220, 40, u));
+  return `rgb(${r},${g},${b})`;
+}
+
+function mandalaBg(){
+  const grad = mCtx.createLinearGradient(0,0,0,mCanvas.height);
+  grad.addColorStop(0, "#061024");
+  grad.addColorStop(1, "#1b0738");
+  mCtx.fillStyle = grad;
+  mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
+}
+
+function drawMandala(){
+  if(mSeries.length < 2) return;
+
+  const W = mCanvas.width, H = mCanvas.height;
+  const cx = W/2, cy = H/2;
+  const baseR = Math.min(W,H) * 0.08;
+  const maxR  = Math.min(W,H) * 0.42;
+
+  mt += 0.015;
+  const rot = mt * 0.6;
+  const pulse = 1 + 0.06*Math.sin(mt*2);
+
+  mandalaBg();
+
+  mCtx.save();
+  mCtx.translate(cx, cy);
+  mCtx.rotate(rot);
+
+  const rings = 4;
+  for(let ring=0; ring<rings; ring++){
+    const ringShift = ring * 0.22;
+    mCtx.globalAlpha = 0.55 - ring*0.1;
+
+    const n = mSeries.length;
+    for(let i=0; i<n; i++){
+      const u = mSeries[i];
+      const ang = (i/n) * Math.PI * 2;
+
+      const r = (baseR + u*(maxR-baseR)) * pulse * (0.78 + ring*0.09);
+      const wob = 10 * Math.sin(mt*2 + i*0.18 + ringShift);
+      const span = (Math.PI*2)/n * (0.65 + 0.6*u);
+
+      mCtx.beginPath();
+      mCtx.moveTo(0, 0);
+      mCtx.arc(0, 0, r + wob, ang, ang + span, false);
+      mCtx.closePath();
+
+      mCtx.fillStyle = mColor(u);
+      mCtx.fill();
+    }
+  }
+
+  mCtx.globalAlpha = 1;
+  mCtx.beginPath();
+  mCtx.arc(0,0, 10, 0, Math.PI*2);
+  mCtx.fillStyle = "rgba(255,255,255,0.85)";
+  mCtx.fill();
+
+  mCtx.restore();
+
+  mCtx.fillStyle = "rgba(255,255,255,0.88)";
+  mCtx.font = "16px Arial";
+  mCtx.fillText("Animated Mandala (Sales-driven)", 16, 26);
+
+  requestAnimationFrame(drawMandala);
+}
+
+// load data and start both canvases
+fetch("/api/sales-series")
+  .then(r => {
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  })
+  .then(data => {
+    series = data.norm || [];
+    mSeries = data.norm || [];
+    if(series.length < 2) throw new Error("Series too short");
+
+    // start both loops
+    loop();
+    drawMandala();
+  })
+  .catch(err => {
+    mandalaBg();
+    mCtx.fillStyle = "red";
+    mCtx.font = "16px Arial";
+    mCtx.fillText("Error loading data series. Open Console (F12).", 20, 30);
+    mCtx.fillText(String(err), 20, 55);
+    console.error(err);
+  });
+</script>
+{% endblock %}

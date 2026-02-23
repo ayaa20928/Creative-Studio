@@ -1,0 +1,87 @@
+{% extends "mobile_base.html" %}
+{% set title = "Home • Creative Studio Mobile" %}
+
+{% block content %}
+<div class="mobile-content">
+  <h1 class="mobile-section-title">Creative Studio</h1>
+
+  <!-- Generative Art -->
+  <div class="mobile-card">
+    <span class="mobile-tag">01 / Generative Art</span>
+    <h2 class="mobile-card-title">Generative Art</h2>
+    <p class="mobile-card-desc">
+      Generate algorithmic visuals. Experiment with seeds, palettes & shapes.
+    </p>
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <a href="/generative" class="mobile-btn" style="flex: 1;">Geometric</a>
+      <a href="/generative/oop" class="mobile-btn-outline" style="flex: 1; padding: 14px; text-align: center; border-radius: 12px; text-decoration: none;">OOP</a>
+    </div>
+    <a href="/generative/interactive" class="mobile-btn-outline" style="margin-top: 8px; display: block; padding: 14px; text-align: center; border-radius: 12px; text-decoration: none;">Interactive →</a>
+  </div>
+
+  <!-- Data Art -->
+  <div class="mobile-card">
+    <span class="mobile-tag">02 / Data Art</span>
+    <h2 class="mobile-card-title">Data Art</h2>
+    <p class="mobile-card-desc">
+      Transform CSV datasets into beautiful visualisations.
+    </p>
+    <a href="/data-art" class="mobile-btn" style="margin-top: 12px;">Open Data Art</a>
+  </div>
+
+  <!-- Image Tool -->
+  <div class="mobile-card">
+    <span class="mobile-tag">03 / Image Tool</span>
+    <h2 class="mobile-card-title">Image Tool</h2>
+    <p class="mobile-card-desc">
+      Upload an image. Apply filters, rotation, flipping, resizing.
+    </p>
+    <a href="/image-tool" class="mobile-btn" style="margin-top: 12px;">Open Image Tool</a>
+  </div>
+
+  <!-- Audio Tool -->
+  <div class="mobile-card">
+    <span class="mobile-tag">04 / Audio Tool</span>
+    <h2 class="mobile-card-title">Audio Tool</h2>
+    <p class="mobile-card-desc">
+      Upload audio & shape it — speed, echo, reverb, pitch.
+    </p>
+    <a href="/audio-tool" class="mobile-btn" style="margin-top: 12px;">Open Audio Tool</a>
+  </div>
+
+  <!-- Gallery -->
+  <div class="mobile-card">
+    <span class="mobile-tag">Gallery</span>
+    <h2 class="mobile-card-title">Your Gallery</h2>
+    <p class="mobile-card-desc">
+      View all your generated artworks.
+    </p>
+    <a href="/gallery" class="mobile-btn" style="margin-top: 12px;">View Gallery</a>
+  </div>
+
+</div>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-nav">
+  <a href="/mobile" class="mobile-nav-item active">
+    <span class="mobile-nav-icon">✦</span>
+    <span>Home</span>
+  </a>
+  <a href="/generative" class="mobile-nav-item">
+    <span class="mobile-nav-icon">◈</span>
+    <span>Art</span>
+  </a>
+  <a href="/gallery" class="mobile-nav-item">
+    <span class="mobile-nav-icon">◉</span>
+    <span>Gallery</span>
+  </a>
+  <a href="/image-tool" class="mobile-nav-item">
+    <span class="mobile-nav-icon">◧</span>
+    <span>Image</span>
+  </a>
+  <a href="/audio-tool" class="mobile-nav-item">
+    <span class="mobile-nav-icon">◎</span>
+    <span>Audio</span>
+  </a>
+</nav>
+{% endblock %}

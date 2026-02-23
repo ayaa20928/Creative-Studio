@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% set title = "Generative Art • Creative Studio" %}
+
+{% block content %}
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Artwork 1 — Random Generative Art</h1>
+      <p class="text-secondary mb-0">
+        Generate geometric visuals by adjusting shape count, palette, and seed.
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-primary" href="/generative/oop">OOP Art →</a>
+      <a class="btn btn-outline-secondary" href="/">Home</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT: Controls -->
+    <div class="col-12 col-lg-5">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Controls</h2>
+
+          <form method="POST" class="d-grid gap-3">
+            <div>
+              <label class="form-label fw-semibold">Number of shapes</label>
+              <input
+                type="number"
+                name="n_shapes"
+                value="{{ n_shapes }}"
+                min="10"
+                max="2000"
+                class="form-control"
+              >
+              <div class="form-text">Higher values can be slower.</div>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold">Palette</label>
+              <select name="palette" class="form-select">
+                <option value="sunset" {% if palette=="sunset" %}selected{% endif %}>Sunset</option>
+                <option value="ocean" {% if palette=="ocean" %}selected{% endif %}>Ocean</option>
+                <option value="mono" {% if palette=="mono" %}selected{% endif %}>Mono</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold">Seed (optional)</label>
+              <input
+                type="text"
+                name="seed"
+                value="{{ seed }}"
+                class="form-control"
+                placeholder="Example: 42"
+              >
+              <div class="form-text">Same seed = same result (with same parameters).</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              Generate
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Preview -->
+    <div class="col-12 col-lg-7">
+      <div class="card card-soft h-100">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Preview</h2>
+
+          <img
+            src="{{ img_url }}"
+            alt="Generated Art"
+            class="img-fluid rounded-3 border mb-3"
+          >
+
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-success" href="{{ img_url }}" download>Download PNG</a>
+            <a class="btn btn-outline-secondary" href="{{ img_url }}" target="_blank">Open</a>
+            <a class="btn btn-outline-primary" href="/gallery">View Gallery</a>
+          </div>
+
+          <div class="small text-secondary mt-3">
+            Tip: If the image doesn’t update, refresh the page — we add a cache-busting <code>?v=</code> parameter.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}

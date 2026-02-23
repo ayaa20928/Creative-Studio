@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local files that shouldn't be committed
+*.log
+*.pot
+*.pyc
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node (if used)
+node_modules/
+package-lock.json
+
+# Binary files to exclude
+ffmpeg.exe
+ffprobe.exe
+ffmpeg_new.exe
+
+# Static uploads (generated files - can be regenerated)
+static/audio_outputs/
+static/audio_uploads/
+static/generated/
+static/outputs/
+static/uploads/

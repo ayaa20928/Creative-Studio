@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% set title = "Animated Data Art • Creative Studio" %}
+
+{% block content %}
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Module 2 — Animated Data Art</h1>
+      <p class="text-secondary mb-0">
+        This animation is driven by monthly Retail + Warehouse Sales.
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-primary" href="/data-art/multi">Multi View</a>
+      <a class="btn btn-outline-secondary" href="/data-art">Static Page</a>
+      <a class="btn btn-outline-secondary" href="/">Home</a>
+    </div>
+  </div>
+
+  <div class="card card-soft">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Animated Sales Landscape</h2>
+      <canvas id="c" width="900" height="420" class="w-100 rounded-3 border"></canvas>
+
+      <div class="alert alert-light border small mt-3 mb-0">
+        If it doesn’t load, open <code>/api/sales-series</code> in the browser and check the Console (F12).
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let series = [];
+let t = 0;
+
+// extra creativity: particles
+const particles = Array.from({length: 120}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: 0.8 + Math.random() * 1.8,
+  vx: -0.2 + Math.random() * 0.4,
+  vy: -0.15 + Math.random() * 0.3
+}));
+
+function lerp(a,b,u){ return a + (b-a)*u; }
+
+// color based on value (0..1)
+function valueColor(u){
+  // a simple gradient: blue -> purple -> orange
+  const r = Math.floor(lerp(30, 250, Math.min(1, u*1.1)));
+  const g = Math.floor(lerp(80, 60, u));
+  const b = Math.floor(lerp(200, 40, u));
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawBackground(){
+  // dark gradient background
+  const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+  grad.addColorStop(0, "#071022");
+  grad.addColorStop(1, "#12062a");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function drawParticles(){
+  ctx.globalAlpha = 0.35;
+  for(const p of particles){
+    p.x += p.vx;
+    p.y += p.vy;
+
+    if(p.x < -10) p.x = canvas.width + 10;
+    if(p.x > canvas.width + 10) p.x = -10;
+    if(p.y < -10) p.y = canvas.height + 10;
+    if(p.y > canvas.height + 10) p.y = -10;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1.0;
+}
+
+function drawWave(){
+  if(series.length < 2) return;
+
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // base line and amplitude
+  const baseY = H * 0.62;
+  const amp = H * 0.23;
+
+  // scrolling effect
+  t += 0.012;
+
+  ctx.lineWidth = 3;
+
+  // draw multiple “layers” for depth
+  for(let layer=0; layer<4; layer++){
+    const layerShift = layer * 0.25;
+
+    ctx.beginPath();
+    for(let i=0; i<series.length; i++){
+      const u = series[i]; // 0..1
+      const x = (i / (series.length-1)) * W;
+
+      // wave uses your data + time
+      const wobble = Math.sin(t*2 + i*0.35 + layerShift) * 0.08;
+      const y = baseY - (u + wobble) * amp + layer * 18;
+
+      if(i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+
+    // stroke color depends on average value
+    const avg = series.reduce((a,b)=>a+b,0) / series.length;
+    ctx.strokeStyle = valueColor(Math.min(1, avg + layer*0.08));
+    ctx.stroke();
+
+    // fill under the wave (soft)
+    ctx.lineTo(W, H);
+    ctx.lineTo(0, H);
+    ctx.closePath();
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = valueColor(Math.min(1, avg + layer*0.08));
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+  }
+
+  // title text
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.font = "16px Arial";
+  ctx.fillText("Animated sales landscape (monthly)", 16, 26);
+}
+
+function loop(){
+  drawBackground();
+  drawParticles();
+  drawWave();
+  requestAnimationFrame(loop);
+}
+
+fetch("/api/sales-series")
+  .then(r => {
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  })
+  .then(data => {
+    series = data.norm || [];
+    loop();
+  })
+  .catch(err => {
+    drawBackground();
+    ctx.fillStyle = "red";
+    ctx.font = "16px Arial";
+    ctx.fillText("Failed to load data series. Open Console (F12).", 20, 30);
+    ctx.fillText(String(err), 20, 55);
+    console.error(err);
+  });
+</script>
+{% endblock %}

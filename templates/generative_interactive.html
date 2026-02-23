@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% set title = "Interactive Art • Creative Studio" %}
+
+{% block head %}
+<style>
+.tool-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.tool-left {
+  flex: 0 0 380px;
+  min-width: 300px;
+}
+
+.tool-right {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 991px) {
+  .tool-container {
+    flex-direction: column;
+  }
+  
+  .tool-left {
+    flex: none;
+    width: 100%;
+  }
+  
+  .tool-right {
+    width: 100%;
+  }
+}
+
+.canvas-container {
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(196,78,255,0.2);
+}
+
+#artCanvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Module 1 — Artwork 3 (Interactive)</h1>
+      <p class="text-secondary mb-0">
+        Click on the canvas to add shapes 🎨. Toggle animation to make them move. Save to Gallery as PNG.
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-primary" href="/gallery">Gallery</a>
+      <a class="btn btn-outline-secondary" href="/">Home</a>
+    </div>
+  </div>
+
+  <div class="tool-container">
+
+    <!-- LEFT: Controls -->
+    <div class="tool-left">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Controls</h2>
+
+          <div class="d-grid gap-3">
+
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold" for="shapeSelect">Shape</label>
+                <select id="shapeSelect" class="form-select">
+                  <option value="circle">Circle</option>
+                  <option value="square">Square</option>
+                </select>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold" for="colorMode">Color</label>
+                <select id="colorMode" class="form-select">
+                  <option value="picker">Picker</option>
+                  <option value="palette" selected>Palette</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="pickerBox">
+              <label class="form-label fw-semibold" for="colorPicker">Pick a color</label>
+              <input type="color" id="colorPicker" value="#1982c4" class="form-control form-control-color">
+              <div class="form-text">Only used if Color = Picker.</div>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold" for="sizeSlider">Size</label>
+              <div class="d-flex align-items-center gap-3">
+                <input type="range" id="sizeSlider" min="5" max="80" value="25" class="form-range">
+                <span class="badge text-bg-light border" id="sizeValue">25</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold" for="speedSlider">Speed</label>
+              <div class="d-flex align-items-center gap-3">
+                <input type="range" id="speedSlider" min="1" max="10" value="3" class="form-range">
+                <span class="badge text-bg-light border" id="speedValue">3</span>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              <button class="btn btn-outline-danger" id="clearBtn" type="button">Clear</button>
+              <button class="btn btn-outline-primary" id="toggleBtn" type="button">Toggle Animation</button>
+              <button class="btn btn-success" id="saveBtn" type="button">Save PNG</button>
+            </div>
+
+            <div class="alert alert-light border mb-0 small" id="msg">
+              Tip: Click the canvas to add shapes. Use "Save PNG" to store it in the Gallery.
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Canvas -->
+    <div class="tool-right">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Canvas</h2>
+
+          <div class="canvas-container">
+            <canvas id="artCanvas" width="600" height="600"></canvas>
+          </div>
+
+          <div class="small text-secondary mt-3">
+            Your save button sends the PNG to <code>/save_canvas</code> and then it appears in Gallery.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const canvas = document.getElementById("artCanvas");
+const ctx = canvas.getContext("2d");
+
+const shapeSelect = document.getElementById("shapeSelect");
+const colorMode = document.getElementById("colorMode");
+const colorPicker = document.getElementById("colorPicker");
+const pickerBox = document.getElementById("pickerBox");
+
+const sizeSlider = document.getElementById("sizeSlider");
+const sizeValue = document.getElementById("sizeValue");
+
+const speedSlider = document.getElementById("speedSlider");
+const speedValue = document.getElementById("speedValue");
+
+const clearBtn = document.getElementById("clearBtn");
+const toggleBtn = document.getElementById("toggleBtn");
+const saveBtn = document.getElementById("saveBtn");
+const msg = document.getElementById("msg");
+
+let shapes = [];
+let animate = false;
+
+// palette kept from your original
+const palette = ["#ff595e","#ffca3a","#8ac926","#1982c4","#6a4c93"];
+
+function setMsg(text, kind="light") {
+  msg.className = "alert alert-" + kind + " border mb-0 small";
+  msg.textContent = text;
+}
+
+function refreshUI(){
+  sizeValue.textContent = sizeSlider.value;
+  speedValue.textContent = speedSlider.value;
+  pickerBox.classList.toggle("d-none", colorMode.value !== "picker");
+}
+
+sizeSlider.addEventListener("input", refreshUI);
+speedSlider.addEventListener("input", refreshUI);
+colorMode.addEventListener("change", refreshUI);
+refreshUI();
+
+function getColor(){
+  if(colorMode.value === "picker") return colorPicker.value;
+  return palette[Math.floor(Math.random() * palette.length)];
+}
+
+function addShape(x, y){
+  const r = parseInt(sizeSlider.value, 10);
+  const speed = parseInt(speedSlider.value, 10);
+  const dx = (Math.random() - 0.5) * speed;
+  const dy = (Math.random() - 0.5) * speed;
+
+  shapes.push({ x, y, r, dx, dy, color: getColor(), type: shapeSelect.value });
+}
+
+canvas.addEventListener("click", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+  addShape(x, y);
+  draw();
+});
+
+function clearCanvas(){
+  shapes = [];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  setMsg("Canvas cleared.", "light");
+}
+
+function toggleAnimation(){
+  animate = !animate;
+  setMsg(animate ? "Animation ON." : "Animation OFF.", animate ? "info" : "light");
+  if(animate) animateLoop();
+}
+
+function drawOne(s){
+  ctx.fillStyle = s.color;
+
+  if(s.type === "square"){
+    ctx.fillRect(s.x - s.r, s.y - s.r, s.r * 2, s.r * 2);
+  } else {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function draw(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for(const s of shapes) drawOne(s);
+}
+
+function bounce(s){
+  if(s.x - s.r < 0){ s.x = s.r; s.dx *= -1; }
+  if(s.x + s.r > canvas.width){ s.x = canvas.width - s.r; s.dx *= -1; }
+  if(s.y - s.r < 0){ s.y = s.r; s.dy *= -1; }
+  if(s.y + s.r > canvas.height){ s.y = canvas.height - s.r; s.dy *= -1; }
+}
+
+function animateLoop(){
+  if(!animate) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for(const s of shapes){
+    s.x += s.dx;
+    s.y += s.dy;
+    bounce(s);
+    drawOne(s);
+  }
+  requestAnimationFrame(animateLoop);
+}
+
+async function saveCanvas(){
+  setMsg("Saving...", "warning");
+  try{
+    const pngData = canvas.toDataURL("image/png");
+    const res = await fetch("/save_canvas", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ image: pngData })
+    });
+
+    const data = await res.json();
+    if(res.ok && data.ok){
+      setMsg("Saved: " + data.filename + " (Check Gallery).", "success");
+    } else {
+      setMsg("Save failed: " + (data.error || "unknown error"), "danger");
+    }
+  } catch(err){
+    setMsg("Save failed: " + err, "danger");
+  }
+}
+
+clearBtn.addEventListener("click", clearCanvas);
+toggleBtn.addEventListener("click", toggleAnimation);
+saveBtn.addEventListener("click", saveCanvas);
+
+// initial draw
+draw();
+</script>
+{% endblock %}

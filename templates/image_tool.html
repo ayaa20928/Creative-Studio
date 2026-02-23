@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% set title = "Image Tool • Creative Studio" %}
+
+{% block head %}
+<style>
+.image-tool-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.image-tool-left {
+  flex: 0 0 380px;
+  min-width: 300px;
+}
+
+.image-tool-right {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 991px) {
+  .image-tool-container {
+    flex-direction: column;
+  }
+  
+  .image-tool-left {
+    flex: none;
+    width: 100%;
+  }
+  
+  .image-tool-right {
+    width: 100%;
+  }
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid rgba(196,78,255,0.2);
+}
+
+.no-preview {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(14, 6, 24, 0.5);
+  border-radius: 12px;
+  border: 1px dashed rgba(196,78,255,0.3);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Module 3 — Image Manipulation Tool</h1>
+      <p class="text-secondary mb-0">
+        Upload an image and apply filters, rotation, flipping, and resizing.
+      </p>
+    </div>
+
+    <a class="btn btn-outline-secondary" href="/gallery">View Gallery</a>
+  </div>
+
+  <div class="image-tool-container">
+
+    <!-- LEFT: Upload + Controls -->
+    <div class="image-tool-left">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Upload & Edit</h2>
+
+          <form method="POST" enctype="multipart/form-data" class="d-grid gap-3">
+
+            <!-- File -->
+            <div>
+              <label class="form-label fw-semibold">Upload Image</label>
+              <input
+                type="file"
+                name="image"
+                accept=".png,.jpg,.jpeg,.webp"
+                class="form-control"
+                required
+              >
+            </div>
+
+            <!-- Effect -->
+            <div>
+              <label class="form-label fw-semibold">Effect</label>
+              <select name="effect" class="form-select">
+                <option value="none">None</option>
+                <option value="grayscale">Grayscale</option>
+                <option value="blur">Blur</option>
+                <option value="sharpen">Sharpen</option>
+                <option value="edges">Edge Detect</option>
+              </select>
+            </div>
+
+            <!-- rotate -->
+            <div>
+              <label class="form-label fw-semibold">Rotate</label>
+              <input
+                type="number"
+                name="rotate"
+                value="0"
+                min="-360"
+                max="360"
+                class="form-control"
+              >
+            </div>
+
+            <!-- Flip -->
+            <div>
+              <label class="form-label fw-semibold">Flip</label>
+              <select name="flip" class="form-select">
+                <option value="none">None</option>
+                <option value="horizontal">Horizontal</option>
+                <option value="vertical">Vertical</option>
+              </select>
+            </div>
+
+            <!-- Resize -->
+            <div>
+              <label class="form-label fw-semibold">Resize (Width, Height)</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input
+                    type="number"
+                    name="w"
+                    placeholder="Width"
+                    class="form-control"
+                  >
+                </div>
+                <div class="col-6">
+                  <input
+                    type="number"
+                    name="h"
+                    placeholder="Height"
+                    class="form-control"
+                  >
+                </div>
+              </div>
+              <div class="form-text">
+                Leave empty to keep original size.
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn-primary">
+              Apply Changes
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Result Preview -->
+    <div class="image-tool-right">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Result Preview</h2>
+
+          {% if output_url %}
+            <img
+              src="{{ output_url }}"
+              alt="Edited result"
+              class="preview-image mb-3"
+            >
+
+            <a class="btn btn-success" href="{{ output_url }}" download>
+              Download Image
+            </a>
+          {% else %}
+            <div class="no-preview">
+              <div class="text-center text-secondary p-4">
+                <div class="mb-2">🖼️</div>
+                <div>No result yet.<br>Upload an image and apply an effect to preview it here.</div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mt-4">
+    <a href="/" class="btn btn-outline-secondary">← Back to Home</a>
+  </div>
+{% endblock %}

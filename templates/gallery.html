@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% set title = "Gallery • Creative Studio" %}
+
+{% block content %}
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+    <div>
+      <h1 class="h4 mb-1">Gallery</h1>
+      <p class="text-secondary mb-0">
+        Your generated images and exported audio files.
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <button class="btn btn-outline-danger" id="clearGallery" onclick="clearGallery()">
+        🗑️ Clear All
+      </button>
+<a class="btn btn-outline-primary" href="/generative/interactive">Go to Interactive</a>
+      <a class="btn btn-outline-secondary" href="/">Home</a>
+    </div>
+  </div>
+
+  {% if items|length == 0 %}
+      <div class="alert alert-info mb-0">
+No files yet. Generate something in <a href="/generative">Generative</a>,
+      <a href="/image-tool">Image Tool</a>, or <a href="/audio-tool">Audio Tool</a>.
+    </div>
+  {% else %}
+    <div class="row g-3">
+      {% for it in items %}
+        {% set path = it.static_path %}
+        {% set lower = it.filename|lower %}
+
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card card-soft h-100">
+            <div class="card-body">
+
+              <!-- Preview -->
+              {% if lower.endswith(".wav") %}
+                <div class="mb-2">
+                  <div class="fw-semibold mb-1">Audio Preview</div>
+                  <audio controls class="w-100">
+                    <source src="{{ url_for('static', filename=path) }}" type="audio/wav">
+                    Your browser does not support audio playback.
+                  </audio>
+                </div>
+              {% else %}
+                <img
+                  src="{{ url_for('static', filename=path) }}"
+                  alt="{{ it.filename }}"
+                  class="img-fluid rounded-3 border"
+                  loading="lazy"
+                >
+              {% endif %}
+
+              <!-- Meta -->
+              <div class="small text-secondary mt-2">
+                <span class="badge text-bg-light border"> {{ it.label }} </span>
+                <span class="ms-2">{{ it.filename }}</span>
+              </div>
+
+              <!-- Actions -->
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <a class="btn btn-sm btn-primary" href="{{ url_for('static', filename=path) }}" download>Download</a>
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('static', filename=path) }}" target="_blank">Open</a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function clearGallery() {
+  if (!confirm("Êtes-vous sûr de vouloir supprimer tous les fichiers de la galerie ?")) {
+    return;
+  }
+  
+  try {
+    const response = await fetch('/gallery/clear', {
+      method: 'POST'
+    });
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert(data.deleted + ' fichiers supprimés !');
+      window.location.reload();
+    } else {
+      alert('Erreur lors de la suppression');
+    }
+  } catch (e) {
+    alert('Erreur: ' + e);
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% set title = "OOP Generative Art • Creative Studio" %}
+
+{% block head %}
+<style>
+.tool-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.tool-left {
+  flex: 0 0 380px;
+  min-width: 300px;
+}
+
+.tool-right {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 991px) {
+  .tool-container {
+    flex-direction: column;
+  }
+  
+  .tool-left {
+    flex: none;
+    width: 100%;
+  }
+  
+  .tool-right {
+    width: 100%;
+  }
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid rgba(196,78,255,0.2);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Module 1 — Artwork 2 (OOP Shapes)</h1>
+      <p class="text-secondary mb-0">
+        Generate OOP-based shapes with controlled randomness (shapes, palette, seed).
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-primary" href="/generative">← Artwork 1</a>
+      <a class="btn btn-outline-secondary" href="/">Home</a>
+    </div>
+  </div>
+
+  <div class="tool-container">
+
+    <!-- LEFT: Controls -->
+    <div class="tool-left">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Controls</h2>
+
+          <form method="POST" class="d-grid gap-3">
+            <div>
+              <label class="form-label fw-semibold">Number of shapes</label>
+              <input
+                type="number"
+                name="n_shapes"
+                value="{{ n_shapes }}"
+                min="10"
+                max="2000"
+                class="form-control"
+              >
+              <div class="form-text">Higher values can be slower.</div>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold">Palette</label>
+              <select name="palette" class="form-select">
+                <option value="sunset" {% if palette=="sunset" %}selected{% endif %}>Sunset</option>
+                <option value="ocean" {% if palette=="ocean" %}selected{% endif %}>Ocean</option>
+                <option value="mono" {% if palette=="mono" %}selected{% endif %}>Mono</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label fw-semibold">Seed (optional)</label>
+              <input
+                type="text"
+                name="seed"
+                value="{{ seed }}"
+                placeholder="e.g. 7"
+                class="form-control"
+              >
+              <div class="form-text">Same seed = same output (with same parameters).</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              Generate OOP Art
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Preview -->
+    <div class="tool-right">
+      <div class="card card-soft">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Preview</h2>
+
+          <img
+            src="{{ img_url }}"
+            alt="OOP Art"
+            class="preview-image mb-3"
+          >
+
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-success" href="{{ img_url }}" download>Download PNG</a>
+            <a class="btn btn-outline-secondary" href="{{ img_url }}" target="_blank">Open</a>
+            <a class="btn btn-outline-primary" href="/gallery">View Gallery</a>
+          </div>
+
+          <div class="small text-secondary mt-3">
+            Tip: Try different seeds for controlled variation.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
