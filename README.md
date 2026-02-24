@@ -9,6 +9,7 @@ A Flask-based creative web application for generating art, visualizing data, and
 - **Image Tool**: Upload images, apply filters, rotation, flipping, resizing
 - **Audio Tool**: Upload audio and apply effects (speed, echo, reverb, pitch)
 - **Gallery**: View all your generated artworks
+- **Mobile Version**: Dedicated mobile-optimized interface at `/mobile`
 
 ## Requirements
 
@@ -21,13 +22,12 @@ A Flask-based creative web application for generating art, visualizing data, and
 1. Clone the repository:
 ```
 bash
-git clone <your-repo-url>
-cd PythonProject
+git clone https://github.com/ayaa20928/creative-studio.git
+cd creative-studio
 ```
 
 2. Create a virtual environment:
-```
-bash
+```bash
 python -m venv .venv
 ```
 
@@ -52,12 +52,12 @@ python app.py
 2. Open your browser:
 - Local: http://127.0.0.1:5000
 - Mobile (same network): http://YOUR_IP:5000
-- Mobile version: http://YOUR_IP:5000/mobile
+- Mobile version: http://127.0.0.1:5000/mobile
 
 ## Project Structure
 
 ```
-PythonProject/
+creative-studio/
 ├── app.py                 # Main Flask application
 ├── requirements.txt       # Python dependencies
 ├── modules/               # Backend modules
