@@ -72,8 +72,8 @@ python app.py
 
 2. Open your browser:
 - Local: http://127.0.0.1:5000
-- Mobile (same network): http://YOUR_IP:5000
 - Mobile version: http://127.0.0.1:5000/mobile
+- Access from phone on same network: http://YOUR_IP:5000
 
 ## Project Structure
 
