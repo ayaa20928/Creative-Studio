@@ -14,8 +14,29 @@ A Flask-based creative web application for generating art, visualizing data, and
 ## Requirements
 
 - Python 3.8+
-- FFmpeg (for audio processing) - download from https://ffmpeg.org/download.html and place ffmpeg.exe in the project root
+- FFmpeg (for audio processing) - see installation instructions below
 - See `requirements.txt` for dependencies
+
+## FFmpeg Installation
+
+### Windows:
+1. Download FFmpeg from https://ffmpeg.org/download.html
+2. Extract the zip file
+3. Copy `ffmpeg.exe` to the project root folder (next to app.py)
+4. OR add FFmpeg to your system PATH
+
+### Mac:
+```
+bash
+brew install ffmpeg
+```
+
+### Linux (Ubuntu/Debian):
+```
+bash
+sudo apt update
+sudo apt install ffmpeg
+```
 
 ## Installation
 
