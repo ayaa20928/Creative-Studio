@@ -14,7 +14,7 @@ A Flask-based creative web application for generating art, visualizing data, and
 ## Requirements
 
 - Python 3.8+
-- FFmpeg (for audio processing) - download from https://ffmpeg.org/download.html
+- FFmpeg (for audio processing) - download from https://ffmpeg.org/download.html and place ffmpeg.exe in the project root
 - See `requirements.txt` for dependencies
 
 ## Installation
